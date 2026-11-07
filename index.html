@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScopeDraft · Invoice workspace</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #172d28;
+    --muted: #4f665e;
+    --paper: #fff;
+    --canvas: #f3f6ef;
+    --line: #d6e1d8;
+    --forest: #124535;
+    --mint: #e7f2e8;
+    --amber: #fff4db;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; color: var(--ink); background: var(--canvas); font: 1rem/1.5 system-ui, sans-serif; }
+  h1, h2, h3, p { margin: 0; }
+  button, textarea { font: inherit; }
+  button { min-height: 46px; cursor: pointer; border: 1px solid transparent; border-radius: .5rem; font-weight: 720; padding: .65rem 1rem; }
+  button:disabled { cursor: default; color: #455f54; background: #e2ebe3; border-color: #d5e1d7; }
+  button:not(:disabled):hover { filter: brightness(1.13); }
+  :focus-visible { outline: 3px solid #167a61; outline-offset: 4px; }
+  .shell { max-width: 77rem; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
+  .top { background: #102e26; color: #f5fbf6; }
+  .top .shell { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 4.25rem; }
+  .brand { display: flex; align-items: center; gap: .65rem; font-weight: 780; letter-spacing: -.025em; }
+  .mark { display: grid; place-items: center; width: 2rem; aspect-ratio: 1; border-radius: .45rem; background: #b9edb4; color: #15362a; }
+  .badge { border: 1px solid #658678; border-radius: 99px; padding: .25rem .65rem; color: #d2ebd9; font-size: .75rem; white-space: nowrap; }
+  main { padding-block: clamp(1.6rem, 4vw, 3.5rem); }
+  .intro { margin-bottom: 1.8rem; }
+  .eyebrow, .step { color: var(--forest); font-size: .73rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  h1 { margin: .3rem 0 .45rem; font-family: Georgia, serif; font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 500; line-height: 1.07; letter-spacing: -.055em; }
+  .intro p:last-child, .hint { color: var(--muted); }
+  .workspace { display: grid; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); gap: 1rem; align-items: start; }
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: .85rem; box-shadow: 0 8px 22px #233b2d0a; overflow: hidden; }
+  .panel-heading, .panel-body { padding: clamp(1rem, 3vw, 1.45rem); }
+  .panel-heading { border-bottom: 1px solid var(--line); }
+  .panel-heading h2 { margin-top: .2rem; font-size: 1.32rem; letter-spacing: -.025em; }
+  .hint { font-size: .87rem; }
+  .source-label { display: block; margin-bottom: .45rem; font-size: .85rem; font-weight: 750; }
+  textarea { display: block; width: 100%; min-height: 11rem; resize: vertical; padding: .85rem; border: 1px solid #a9bcb0; border-radius: .5rem; color: var(--ink); background: #f8faf6; line-height: 1.65; }
+  .source .hint { margin: .65rem 0 1rem; }
+  .primary { color: #fff; background: var(--forest); }
+  .secondary { color: var(--forest); background: var(--mint); }
+  .empty { min-height: 15.8rem; display: grid; align-content: center; justify-items: start; gap: .5rem; color: var(--muted); }
+  .empty svg { padding: .55rem; border-radius: .45rem; background: var(--mint); color: var(--forest); }
+  .empty strong { color: var(--ink); }
+  fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+  legend { margin-bottom: .55rem; padding: 0; font-weight: 750; }
+  #rows { display: grid; gap: .55rem; }
+  .evidence-row { border: 1px solid var(--line); border-radius: .5rem; }
+  .evidence-row:has(input:checked) { background: var(--mint); border-color: #89b498; }
+  .charge { display: grid; grid-template-columns: 1.15rem minmax(0, 1fr) auto; align-items: start; gap: .2rem .65rem; padding: .72rem .72rem .3rem; cursor: pointer; }
+  .charge input { margin: .28rem 0 0; width: 1.05rem; height: 1.05rem; accent-color: var(--forest); }
+  .charge strong { overflow-wrap: anywhere; }
+  .quote { display: block; min-height: 44px; margin: 0 .65rem .35rem 2.35rem; padding: .15rem .25rem; color: var(--forest); background: transparent; font-size: .83rem; font-weight: 550; text-align: left; text-decoration: underline; text-underline-offset: .17em; overflow-wrap: anywhere; }
+  .manual-note { grid-column: 2 / -1; color: #704b16; font-size: .82rem; }
+  .price { font-weight: 760; font-variant-numeric: tabular-nums; }
+  .excluded { margin-top: 1rem; padding: .7rem .85rem; border-left: 3px solid #c69c4b; background: var(--amber); overflow-wrap: anywhere; }
+  .excluded h3 { font-size: .88rem; }
+  .excluded ul { margin: .25rem 0 0; padding-left: 1.1rem; font-size: .88rem; }
+  .excluded small { display: block; color: #6c4c20; }
+  .invoice-footer { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+  #total { font-size: 1.05rem; font-weight: 780; font-variant-numeric: tabular-nums; }
+  .feedback { margin-top: .75rem; padding: .7rem .9rem; border-radius: .5rem; background: var(--mint); overflow-wrap: anywhere; }
+  .feedback:empty { display: none; }
+  .feedback[data-tone="error"] { background: var(--amber); color: #653914; }
+  .footnote { margin-top: 1rem; color: var(--muted); font-size: .8rem; }
+  @media (max-width: 48rem) {
+    .workspace { grid-template-columns: 1fr; }
+    .empty { min-height: 8rem; }
+  }
+  @media (max-width: 26rem) {
+    .charge { grid-template-columns: 1.15rem minmax(0, 1fr); }
+    .price { grid-column: 2; }
+    .invoice-footer button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="shell">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></span>
+      ScopeDraft
+    </div>
+    <span class="badge">PayPal sandbox</span>
+  </div>
+</header>
+<main class="shell">
+  <div class="intro">
+    <p class="eyebrow">Freelancer invoice workspace</p>
+    <h1>From project notes to invoice draft.</h1>
+    <p>Review each charge against the original agreement before creating a draft in PayPal.</p>
+  </div>
+  <div class="workspace">
+    <section class="panel source" aria-labelledby="source-title">
+      <header class="panel-heading"><p class="step">01 / Source</p><h2 id="source-title">Project notes</h2></header>
+      <div class="panel-body">
+        <label class="source-label" for="notes">Fictional project notes</label>
+        <textarea id="notes" aria-describedby="hint" maxlength="4000" spellcheck="false">Agreed landing page design for $250.
+Agreed 2 x $75 for two icon sets.
+Accessibility audit optional, price TBD.</textarea>
+        <p class="hint" id="hint">Use one USD charge per line. Only enter fictional notes. NVIDIA receives the text for extraction.</p>
+        <button id="extract" class="primary" type="button">Extract line items <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="review-title">
+      <header class="panel-heading"><p class="step">02 / Approval</p><h2 id="review-title" tabindex="-1">Review &amp; draft</h2></header>
+      <div class="panel-body">
+        <div class="empty" id="empty">
+          <svg aria-hidden="true" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h4"/></svg>
+          <strong id="empty-title">Your review starts here</strong>
+          <p id="empty-copy">Extract line items to see their source quotes and decide what belongs on the invoice.</p>
+        </div>
+        <div id="review" hidden>
+          <fieldset id="items"><legend>Proposed charges</legend><div id="rows"></div></fieldset>
+          <section id="excluded-section" class="excluded" aria-labelledby="excluded-title" hidden>
+            <h3 id="excluded-title">Left out of the draft</h3>
+            <ul id="excluded"></ul>
+          </section>
+          <div class="invoice-footer">
+            <p id="total" aria-live="polite">Selected total $0.00</p>
+            <button id="create" class="secondary" type="button" disabled>Create PayPal sandbox draft</button>
+          </div>
+        </div>
+        <p id="status" class="feedback" role="status"></p>
+      </div>
+    </section>
+  </div>
+  <p class="footnote">Sandbox drafts only. No invoice is sent and no payment is collected.</p>
+</main>
+<script type="module">
+  const get = id => document.getElementById(id);
+  const dollars = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  let proposal;
+  let busy = false;
+  let finished = false;
+  let locked = false;
+  let reviewedNotes;
+  const stale = () => Boolean(proposal && reviewedNotes !== get('notes').value);
+  function feedback(message, tone = '') {
+    get('status').textContent = message;
+    get('status').dataset.tone = tone;
+  }
+  const selected = () => [...get('rows').querySelectorAll('input:checked')].map(input => Number(input.value));
+
+  function update() {
+    const indices = selected();
+    const cents = indices.reduce((total, index) => {
+      const item = proposal.items[index];
+      return total + Number(item.unitPrice.replace('.', '')) * item.quantity;
+    }, 0);
+    get('total').textContent = 'Selected total ' + dollars.format(cents / 100);
+    get('extract').disabled = busy;
+    get('notes').disabled = busy;
+    get('rows').querySelectorAll('input').forEach(input => { input.disabled = busy || locked || stale(); });
+    get('rows').querySelectorAll('.quote').forEach(button => { button.disabled = busy || stale(); });
+    get('create').disabled = busy || finished || stale() || !indices.length;
+  }
+
+  async function post(path, body) {
+    const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error);
+    return result;
+  }
+
+  get('extract').addEventListener('click', async () => {
+    busy = true;
+    get('review').hidden = true;
+    get('empty').hidden = false;
+    get('empty-title').textContent = 'Reading your notes';
+    get('empty-copy').textContent = 'NVIDIA is identifying agreed charges and their source quotes.';
+    update();
+    feedback('Extracting items…');
+    try {
+      reviewedNotes = get('notes').value;
+      proposal = await post('/extract', { notes: reviewedNotes });
+      finished = false;
+      locked = false;
+      get('rows').replaceChildren(...proposal.items.map((item, index) => {
+        const label = document.createElement('label');
+        label.className = 'charge';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = index;
+        const quote = document.createElement('button');
+        quote.className = 'quote';
+        quote.type = 'button';
+        quote.textContent = 'Source · ' + item.quote;
+        quote.addEventListener('click', () => {
+          const notes = get('notes');
+          if (stale()) return;
+          const line = [...notes.value.matchAll(/[^\n]+/g)].find(match => match[0].trim() === item.quote);
+          if (!line) return;
+          const start = line.index + line[0].indexOf(item.quote);
+          notes.focus();
+          notes.setSelectionRange(start, start + item.quote.length);
+        });
+        const title = document.createElement('strong');
+        title.textContent = item.name;
+        const price = document.createElement('span');
+        price.className = 'price';
+        price.textContent = item.quantity + ' × ' + dollars.format(item.unitPrice);
+        label.append(input, title, price);
+        if (item.manual) {
+          const note = document.createElement('small');
+          note.className = 'manual-note';
+          note.textContent = 'Manual review · AI skipped this line. Confirm the agreement before selecting it.';
+          label.append(note);
+        }
+        const row = document.createElement('div');
+        row.className = 'evidence-row';
+        row.append(label, quote);
+        return row;
+      }));
+      get('excluded').replaceChildren(...proposal.unreviewed.map(({ quote, reason }) => {
+        const li = document.createElement('li');
+        const detail = document.createElement('small');
+        detail.textContent = reason;
+        li.append(quote, detail);
+        return li;
+      }));
+      get('empty').hidden = true;
+      get('review').hidden = false;
+      get('excluded-section').hidden = !proposal.unreviewed.length;
+      get('review-title').focus();
+      feedback(proposal.items.length ? 'Select the charges you approve.' : 'No supported charges found. Check the notes for agreed USD amounts.');
+    } catch (error) {
+      get('empty-title').textContent = 'Review unavailable';
+      get('empty-copy').textContent = 'Check the message below, then try extraction again.';
+      feedback(error.message, 'error');
+    } finally {
+      busy = false;
+      update();
+    }
+  });
+  get('notes').addEventListener('input', () => {
+    if (!proposal || get('review').hidden) return;
+    get('rows').querySelectorAll('input').forEach(input => { input.checked = false; });
+    if (locked) {
+      get('review').hidden = true;
+      get('empty').hidden = false;
+      get('empty-title').textContent = 'Start a new review';
+      get('empty-copy').textContent = 'Extract the revised notes to prepare another draft.';
+    }
+    feedback(stale() || locked ? 'Extract the updated notes before creating a draft.' : 'Notes match the review again. Select the charges you approve.');
+    update();
+  });
+  get('items').addEventListener('change', update);
+  get('create').addEventListener('click', async () => {
+    const indices = selected();
+    busy = true;
+    locked = true;
+    update();
+    feedback('Creating the PayPal draft…');
+    try {
+      const result = await post('/draft', { id: proposal.id, indices });
+      finished = true;
+      feedback('Verified in PayPal sandbox · ' + result.id + ' · ' + result.status);
+    } catch (error) {
+      feedback(error.message, 'error');
+    } finally {
+      busy = false;
+      update();
+    }
+  });
+</script>
+</body>
+</html>
