@@ -23,12 +23,17 @@ Node.js serves the local app and calls NVIDIA NIM and PayPal Sandbox Invoicing v
 4. **1:25–1:55** Create the sandbox draft. Show the returned invoice ID and DRAFT status, then match the ID in the sandbox dashboard. Crop account details.
 5. **1:55–2:15** Explain NVIDIA's role, the human review step and how judges can run it.
 
+## Devpost links
+
+- [Public MIT source and setup instructions](https://github.com/GSMPRANEETH/scopedraft-paypal)
+- [Public YouTube demo, 1:43](https://youtu.be/Sf49ei_bKxo)
+
 ## Before entry
 
 - [x] Verify the sample against both live providers and record the resulting sandbox draft status.
 - [ ] Verify that judges can get the required PayPal sandbox and NVIDIA NIM access. Keep credentials out of Git and video.
-- [ ] Publish the source with a detectable open-source license and complete run instructions.
-- [ ] Upload the working demo to YouTube as public, under three minutes, and verify the link in a signed-out browser.
+- [x] Publish the source with a detectable open-source license and complete run instructions.
+- [x] Verify the uploaded video is public, playable without signing in, and under three minutes.
 - [ ] Complete the Devpost fields, confirm team representation if applicable, and verify submission from the dashboard or receipt.
 
 ## Jules task

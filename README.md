@@ -2,7 +2,9 @@
 
 PayPal AI Hackathon on Devpost. Registered on 27 October. Official deadline is 13 November 2026 at 1:30 AM IST. Target submission is 12 November at 8:00 PM IST.
 
-## Proposed demo
+## Live demo
+
+[Watch the 1:43 PayPal sandbox walkthrough](https://youtu.be/Sf49ei_bKxo).
 
 A freelancer pastes fictional project notes. The app extracts priced items with exact source quotes and lists unclear or unpriced work separately. The freelancer reviews items and totals, then explicitly creates a PayPal sandbox invoice draft. Show the matching invoice ID and DRAFT status from PayPal. Start with USD and positive whole quantities. Keep sending and payment outside the first demo.
 
