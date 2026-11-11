@@ -4,6 +4,8 @@ Turn fictional project notes into a PayPal sandbox invoice draft you can check l
 
 [Watch the 1:43 PayPal AI Hackathon walkthrough](https://youtu.be/Sf49ei_bKxo).
 
+[Try the live Netlify sample](https://gsmpraneeth-scopedraft.netlify.app/). Extract the fixed fictional notes, select both charges for USD 400, and create or reopen the shared sandbox draft.
+
 ## Run locally
 
 1. Clone this repository and open its root directory with Node.js 22 installed. There are no dependencies to install.
