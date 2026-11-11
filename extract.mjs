@@ -1,10 +1,14 @@
 const instructionOverride = /\bignore\b[^\r\n]*\binstructions\b/i;
 
 export function ground(notes, proposed) {
-  if (!Array.isArray(proposed.items)) throw new Error('The model returned an invalid item list.');
+  if (!Array.isArray(proposed?.items)) throw new Error('The model returned an invalid item list.');
   const sources = new Map();
-  for (const line of notes.split(/\r?\n/).map(line => line.trim()).filter(Boolean)) {
-    sources.set(line, (sources.get(line) ?? 0) + 1);
+  for (const [index, line] of notes.split(/\r?\n/).entries()) {
+    const quote = line.trim();
+    if (!quote) continue;
+    const source = sources.get(quote) ?? { count: 0, line: index + 1 };
+    source.count++;
+    sources.set(quote, source);
   }
   const proposals = new Map();
   for (const item of proposed.items) {
@@ -15,11 +19,11 @@ export function ground(notes, proposed) {
   }
   const items = [];
   const unreviewed = [];
-  for (const [quote, count] of sources) {
+  for (const [quote, { count, line }] of sources) {
     const matching = proposals.get(quote) ?? [];
     const result = reviewLine(quote, count, matching);
     if (typeof result === 'string') unreviewed.push({ quote, reason: result });
-    else items.push(result);
+    else items.push({ ...result, line });
   }
   return { items, unreviewed };
 }
@@ -40,7 +44,8 @@ function reviewLine(quote, count, matching) {
 
 function parseCharge(quote) {
   if (instructionOverride.test(quote)) return 'This line contains an instruction to the AI.';
-  if (/\b(?:maybe|estimate|estimated|optional|pending|or|not|exclude|discount|tax|tbd|total|deposit|possible)\b|\b(?:up to|subject to|if approved)\b|\?/i.test(quote)) {
+  // ponytail: Single-line checks catch explicit exclusions. Cross-line conflicts still need review.
+  if (/\b(?:maybe|estimat(?:e|ed)|optional|pending|or|not|exclud(?:e|ed)|discount|tax|tbd|total|deposit|possible|if|unless|waiv(?:e|ed)|cancel(?:led|ed)?|refund(?:ed)?)\b|\b(?:up to|subject to)\b|\?/i.test(quote)) {
     return 'The line contains terms that need a manual review.';
   }
   if (/(?:[-−]\s*\$|\b(?:CAD|AUD|NZD|SGD|HKD|MXN)\b|[A-Za-z]\$)/i.test(quote)) {

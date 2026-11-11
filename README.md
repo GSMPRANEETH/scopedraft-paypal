@@ -1,38 +1,23 @@
 # ScopeDraft
 
-PayPal AI Hackathon on Devpost. Registered on 27 October. Official deadline is 13 November 2026 at 1:30 AM IST. Target submission is 12 November at 8:00 PM IST.
+Turn fictional project notes into a PayPal sandbox invoice draft you can check line by line. ScopeDraft uses NVIDIA NIM to suggest charges, derives the amounts and quantities from their source lines, and lets you select which charges to include. It reads the saved draft back from PayPal and checks its status, reference and line items.
 
-## Live demo
+[Watch the 1:43 PayPal AI Hackathon walkthrough](https://youtu.be/Sf49ei_bKxo).
 
-[Watch the 1:43 PayPal sandbox walkthrough](https://youtu.be/Sf49ei_bKxo).
+## Run locally
 
-A freelancer pastes fictional project notes. The app extracts priced items with exact source quotes and lists unclear or unpriced work separately. The freelancer reviews items and totals, then explicitly creates a PayPal sandbox invoice draft. Show the matching invoice ID and DRAFT status from PayPal. Start with USD and positive whole quantities. Keep sending and payment outside the first demo.
+1. Clone this repository and open its root directory with Node.js 22 installed. There are no dependencies to install.
+2. Run `node check.mjs` to check payloads, extraction grounding and draft recovery without provider credentials.
+3. Copy `.env.example` to `.env`. In the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/), switch to **Sandbox**, open or create an app under **Apps & Credentials**, and copy its Client ID and Secret to `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Under **Testing Tools → Sandbox Accounts**, copy a sandbox personal account email to `PAYPAL_TEST_BUYER`. [PayPal Sandbox guide](https://developer.paypal.com/sandbox-testing/overview)
+4. Open the [NVIDIA Nemotron model page](https://build.nvidia.com/nvidia/nemotron-3.5-lightning-30b-a3b), sign in and generate a key for the free endpoint. Set `NVIDIA_API_KEY` to that key and `NVIDIA_MODEL` to `nvidia/nemotron-3.5-lightning-30b-a3b`. Keep both providers' credentials in the ignored `.env` file.
+5. Run `node --env-file=.env server.mjs` and open <http://127.0.0.1:3030/>. Use the prefilled fictional notes, select the two agreed charges, and create the sandbox draft. The expected total is **USD 400** and the returned status is **DRAFT**.
 
-## Sandbox check
+The local build uses the judge's own provider accounts. Both providers publish free developer access for these flows. Account eligibility and provider availability during judging can vary.
 
-Use Node.js 22. Run these commands from this directory.
+## Checks and demo scope
 
-1. Run `node check.mjs` for the local payload check.
-2. Copy `.env.example` to `.env`. Fill it with the sandbox app client ID and secret from the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/), plus the email of a sandbox personal account. Use local environment variables or this ignored file.
-3. Run `node --env-file=.env sandbox.mjs --smoke`. Each invocation attempts to create a separate sandbox draft with one $250 sample item. The script retrieves it and checks for DRAFT. Record a sanitized result and redact account details in screenshots.
+Run `node demo-check.mjs --create-sandbox-draft` in a second terminal to test extraction and create one draft through the local app. The check verifies the two source line numbers, their prices and quantities, and the exclusion of the optional audit. ScopeDraft compares the saved line items, currency and reference against the approved request before reporting success. This command replaces the server's active review and creates a fresh draft each time.
 
-## Run the app
+ScopeDraft supports one local review at a time and one explicit positive USD price per line. Use the format `2 x $75.00` for a whole-unit quantity. The source button highlights the original note. Read the full notes for conflicts across lines, and check any manually suggested row before selecting it. If draft creation has an uncertain result, use the displayed reference to check Sandbox Invoicing before starting another review.
 
-Set `NVIDIA_API_KEY` and `NVIDIA_MODEL` in the same `.env` file. Use a chat model available to your [NVIDIA NIM account](https://docs.api.nvidia.com/nim/reference/llm-apis) that can return plain JSON. Start with `node --env-file=.env server.mjs` and open <http://127.0.0.1:3030/>.
-
-To verify the same flow as the demo through the running server, run `node demo-check.mjs --create-sandbox-draft` in a second terminal. Each run checks the sample extraction before attempting to create one sandbox draft and printing its verified status. This replaces any active review in the local server.
-
-The app uses a single local review at a time. It supports a single explicit USD amount per line, with optional whole-unit quantities written as `2 x $75.00`. Put unpriced, conditional and conflicting terms on separate lines. Click a source quote to locate it in the notes. If the AI skips a price-valid line starting with Agreed, Approved, or Confirmed, it can appear as an unchecked manual review row. Read the original agreement before selecting it. Review the names, quoted amounts and the reasons for omitted lines before selecting items. Use fictional notes only. Extraction sends those notes to NVIDIA. Creating a draft sends selected item names, amounts and the configured sandbox recipient to PayPal.
-
-Local checks passed for payload construction and extraction grounding. The HTTP flow passed with stubbed NVIDIA and PayPal responses, including one create call for concurrent duplicate requests. Chromium also passed keyboard selection, total and draft result rendering with stubbed responses. A stubbed recovery check also confirms that a failed status lookup retries only the read, while an uncertain create response requires reconciliation using the displayed reference. On 7 November 2026, the live app check extracted two charges totaling $400, excluded the optional audit, and created and read back a PayPal sandbox invoice in DRAFT status.
-
-## Sprint and handoffs
-
-- **7–8 November.** Prove PayPal OAuth and draft retrieval. Confirm which NVIDIA NIM model and credentials can be used by the app. Integrate extraction, source verification and a review screen. Test missing prices, conflicting prices and instructions embedded in the input.
-- **9–10 November.** Test a clean setup, stable retries on the same draft action, keyboard access and provider errors. Record a demo once the real workflow passes.
-- **By 11 November.** Jules can draft judge setup, submission text and a video shot list. Use the [repoless handoff](SUBMISSION.md#jules-task) to start docs review without granting repository access. Keep the task docs-only, use fictional examples and mark all unverified results. Pull the output before Jules becomes read-only after 11 November.
-- **12 November.** Verify judge access, open-source license, public repository, public YouTube demo under three minutes and all Devpost fields. Submit by the internal cutoff and verify receipt. Official rules allow a reproducible local build with complete setup instructions. Judge access needs to work through 15 December. Decide how to provide free access without publishing secrets before choosing the submission route.
-
-Codex owns the core integration and verification. Antigravity completed the first design review and can independently review extraction behavior once the first flow exists. Use the modded Claude Code for adversarial examples and fixture review once its NVIDIA route is confirmed. Keep notes about tools and what they contributed for Devpost.
-
-[Official rules](https://paypalaihackathon.devpost.com/rules) · [PayPal Invoicing quickstart](https://developer.paypal.com/api/invoicing) · [Jules changelog](https://jules.google/docs/changelog)
+Use fictional notes and sandbox accounts. Extraction sends notes to NVIDIA. PayPal receives selected names, amounts, quantities, source line references and the configured sandbox buyer. A manual item's name can contain its original line. The app creates sandbox drafts only.

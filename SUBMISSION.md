@@ -1,43 +1,34 @@
-# ScopeDraft submission draft
+# ScopeDraft · PayPal AI Hackathon
 
-Internal cutoff is 12 November 2026 at 8 PM IST. Devpost closes on 13 November at 1:30 AM IST. [Official rules](https://paypalaihackathon.devpost.com/rules)
+Deadline is **13 November 2026 at 1:30 a.m. IST**. [Official rules](https://paypalaihackathon.devpost.com/rules)
 
-## Project copy
+## Devpost fields
+
+**Project name**
+ScopeDraft
 
 **Tagline**
 Turn project notes into a PayPal invoice draft you can check line by line.
 
+**Inspiration**
+Freelancers often agree on scope in the same notes they use for optional ideas and follow-up work. When it’s time to invoice, they have to piece together which charges were approved and double-check the math.
+
 **What it does**
-ScopeDraft helps freelancers turn agreed project charges into an invoice draft. NVIDIA NIM proposes line items by source line number. ScopeDraft displays the original text, derives amounts and whole-unit quantities from it, and explains why other lines were left out. The freelancer chooses which charges to include. If AI skips a price-valid line explicitly marked agreed, approved, or confirmed, the app shows it unchecked for manual review. PayPal Invoicing creates the sandbox draft, and ScopeDraft reads it back to confirm its status.
+ScopeDraft suggests agreed charges from fictional project notes and shows the source line for each suggestion. It derives prices and quantities from that text and explains why it skipped other lines. If the AI misses a usable line marked agreed, approved or confirmed, ScopeDraft offers it unchecked for manual review. The freelancer selects the charges. PayPal Invoicing creates a sandbox draft, which ScopeDraft reads back to confirm its status, reference and line items.
 
-The live app check on 7 November 2026 extracted two agreed charges totaling $400, excluded the optional audit, and confirmed the resulting PayPal sandbox invoice was in DRAFT status. The project creates drafts only.
+**How we built it**
+A dependency-free Node.js server calls NVIDIA NIM with Nemotron 3.5 Lightning to propose charges by source line number. The app validates each proposal against the original note and derives amounts independently. After the user confirms the selection, it uses PayPal Sandbox Invoicing v2 to create and retrieve the draft. The browser UI supports keyboard selection and lets users jump from a suggested charge to its source text. Codex assisted with implementation and verification. Antigravity and Claude Code reviewed the interaction and failure handling.
 
-**Tools**
-Node.js serves the local app and calls NVIDIA NIM and PayPal Sandbox Invoicing v2. The browser renders the review and selected totals. Codex implemented and verified the local flow. Antigravity reviewed the initial design and proposed making the evidence directly navigable. Claude Code reviewed evidence visibility, retry behavior and demo clarity. Add Jules only after reviewing its output.
+**What we learned**
+An invoice ID alone does not verify the invoice. Reading the draft back catches differences in the saved charges or their references. In a live test the app extracted two charges totaling USD 400, excluded the optional audit and verified the saved draft.
 
-## Video shot list
+**Built with**
+JavaScript, Node.js, HTML, CSS, NVIDIA NIM, Nemotron 3.5 Lightning, PayPal Sandbox Invoicing v2
 
-1. **0:00–0:20** Show how agreed freelancer charges and optional work can get mixed together in the same project notes.
-2. **0:20–0:55** Paste the sample, run extraction and show two cited items plus the excluded audit. Click a source quote to highlight it in the original notes and point out why the optional audit was left out.
-3. **0:55–1:25** Select both agreed items with the keyboard and show the $400 total.
-4. **1:25–1:55** Create the sandbox draft. Show the returned invoice ID and DRAFT status, then match the ID in the sandbox dashboard. Crop account details.
-5. **1:55–2:15** Explain NVIDIA's role, the human review step and how judges can run it.
+**Try it out**
+Use the repository's Run locally steps with Node.js 22 and your own PayPal Sandbox and NVIDIA developer credentials. The prefilled notes produce a USD 400 draft. The video shows the workflow on the local app.
 
-## Devpost links
+## Links
 
-- [Public MIT source and setup instructions](https://github.com/GSMPRANEETH/scopedraft-paypal)
-- [Public YouTube demo, 1:43](https://youtu.be/Sf49ei_bKxo)
-
-## Before entry
-
-- [x] Verify the sample against both live providers and record the resulting sandbox draft status.
-- [ ] Verify that judges can get the required PayPal sandbox and NVIDIA NIM access. Keep credentials out of Git and video.
-- [x] Publish the source with a detectable open-source license and complete run instructions.
-- [x] Verify the uploaded video is public, playable without signing in, and under three minutes.
-- [ ] Complete the Devpost fields, confirm team representation if applicable, and verify submission from the dashboard or receipt.
-
-## Jules task
-
-Paste this brief into a new [Jules](https://jules.google.com/) task without a repository if repo access is unavailable. Use the draft above as the input.
-
-> Review ScopeDraft's proposed submission against the official PayPal AI Hackathon Devpost rules. Return a revised English submission draft, a 2:15 demo shot list, and a judge setup checklist. Distinguish the verified live sample from additional tests that use stubbed provider responses. Scope is docs only. Use fictional examples. Keep repository, video and testing URLs as placeholders until verified. Report any mismatch between the planned local setup and the contest's access requirements.
+- [Public MIT repository and judge setup](https://github.com/GSMPRANEETH/scopedraft-paypal)
+- [Public YouTube demo · 1:43](https://youtu.be/Sf49ei_bKxo)

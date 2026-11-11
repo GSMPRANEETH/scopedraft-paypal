@@ -133,7 +133,7 @@ Accessibility audit optional, price TBD.</textarea>
       </div>
     </section>
   </div>
-  <p class="footnote">Sandbox drafts only. No invoice is sent and no payment is collected.</p>
+  <p class="footnote">Sandbox drafts only. PayPal stores approved item names, amounts and source line numbers. A manual review row can use the original line as its item name.</p>
 </main>
 <script type="module">
   const get = id => document.getElementById(id);
@@ -193,13 +193,13 @@ Accessibility audit optional, price TBD.</textarea>
         const quote = document.createElement('button');
         quote.className = 'quote';
         quote.type = 'button';
-        quote.textContent = 'Source · ' + item.quote;
+        quote.textContent = 'Line ' + item.line + ' · ' + item.quote;
         quote.addEventListener('click', () => {
           const notes = get('notes');
           if (stale()) return;
-          const line = [...notes.value.matchAll(/[^\n]+/g)].find(match => match[0].trim() === item.quote);
-          if (!line) return;
-          const start = line.index + line[0].indexOf(item.quote);
+          const lines = notes.value.split('\n');
+          const line = lines[item.line - 1];
+          const start = lines.slice(0, item.line - 1).join('').length + item.line - 1 + line.indexOf(item.quote);
           notes.focus();
           notes.setSelectionRange(start, start + item.quote.length);
         });
@@ -263,7 +263,8 @@ Accessibility audit optional, price TBD.</textarea>
     try {
       const result = await post('/draft', { id: proposal.id, indices });
       finished = true;
-      feedback('Verified in PayPal sandbox · ' + result.id + ' · ' + result.status);
+      feedback('Verified in PayPal sandbox · ' + result.id + ' · ' + result.status +
+        '. PayPal returned the approved charges and source line numbers.');
     } catch (error) {
       feedback(error.message, 'error');
     } finally {

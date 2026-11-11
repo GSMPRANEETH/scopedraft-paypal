@@ -20,8 +20,9 @@ export function draftPayload(recipient, items) {
     detail: { currency_code: 'USD' },
     invoicer: { name: { given_name: 'Scope', surname: 'Draft Demo' } },
     primary_recipients: [{ billing_info: { email_address: recipient } }],
-    items: items.map(({ name, quantity, unitPrice }) => ({
-      name, quantity: String(quantity), unit_amount: { currency_code: 'USD', value: unitPrice },
+    items: items.map(({ name, quantity, unitPrice, line }) => ({
+      name, ...(line && { description: `Reviewed source line ${line}` }),
+      quantity: String(quantity), unit_amount: { currency_code: 'USD', value: unitPrice },
     })),
   };
 }
@@ -42,10 +43,10 @@ export async function createDraft(items, attempt) {
   });
   const headers = { Authorization: `Bearer ${token}` };
   const path = '/v2/invoicing/invoices';
+  const payload = draftPayload(buyer, items);
   if (!attempt.invoiceId) {
     attempt.submitted = true;
     try {
-      const payload = draftPayload(buyer, items);
       payload.detail.reference = attempt.requestId;
       const draft = await request(path, {
         method: 'POST',
@@ -62,6 +63,17 @@ export async function createDraft(items, attempt) {
   try {
     const invoice = await request(`${path}/${attempt.invoiceId}`, { headers });
     if (invoice.status !== 'DRAFT') throw new Error('Expected PayPal to report DRAFT.');
+    if (invoice.detail?.reference !== attempt.requestId ||
+        invoice.items?.length !== payload.items.length ||
+        !payload.items.every((expected, index) => {
+          const actual = invoice.items[index];
+          return actual.name === expected.name && (actual.description ?? '') === (expected.description ?? '') &&
+            Number(actual.quantity) === Number(expected.quantity) &&
+            actual.unit_amount?.currency_code === expected.unit_amount.currency_code &&
+            Number(actual.unit_amount?.value) === Number(expected.unit_amount.value);
+        })) {
+      throw new Error('PayPal returned a draft that differs from the approved charges or reference.');
+    }
   } catch (error) {
     throw new Error(`Verification failed for ${attempt.invoiceId}. ${error.message}`);
   }

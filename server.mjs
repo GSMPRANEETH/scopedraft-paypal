@@ -38,8 +38,8 @@ createServer(async (request, response) => {
     return json(400, { error: 'Expected JSON input.' });
   }
   if (request.url === '/extract') {
-    const notes = typeof body?.notes === 'string' ? body.notes.trim() : '';
-    if (!notes || notes.length > 4000 || notes.split('\n').length > 30) {
+    const notes = typeof body?.notes === 'string' ? body.notes : '';
+    if (!notes.trim() || notes.length > 4000 || notes.split('\n').length > 30) {
       return json(400, { error: 'Enter up to 4,000 characters and 30 lines.' });
     }
     try {
@@ -59,13 +59,14 @@ createServer(async (request, response) => {
       selection.some(index => !Number.isInteger(index) || index < 0 || index >= current.items.length)) {
     return json(400, { error: 'Select one or more reviewed items.' });
   }
-  const key = [...selection].sort((a, b) => a - b).join(',');
+  const indices = [...selection].sort((a, b) => a - b);
+  const key = indices.join(',');
   if (current.selection && current.selection !== key) {
     return json(409, { error: 'A draft attempt already exists for a different selection. Check PayPal before starting a new review.' });
   }
   current.selection = key;
   current.attempt ??= { requestId: randomUUID() };
-  current.draft ??= createDraft(selection.map(index => current.items[index]), current.attempt);
+  current.draft ??= createDraft(indices.map(index => current.items[index]), current.attempt);
   try {
     return json(200, { id: await current.draft, status: 'DRAFT' });
   } catch (error) {

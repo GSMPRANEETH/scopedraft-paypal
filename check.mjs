@@ -29,9 +29,21 @@ const proposals = notes.split('\n').map(quote => ({ name: 'Reviewed item', quote
 proposals.push({ name: 'Invented item', quote: 'Fabricated $999.' });
 const result = ground(notes, { items: proposals });
 assert.deepEqual(result.items.map(({ quantity, unitPrice }) => [quantity, unitPrice]), [[1, '250.00'], [2, '75.50']]);
+assert.deepEqual(draftPayload('buyer@example.test', result.items).items.map(item => item.description),
+  ['Reviewed source line 1', 'Reviewed source line 2']);
 assert.deepEqual(result.unreviewed.map(item => item.quote), notes.split('\n').slice(2));
 assert.match(result.unreviewed.find(item => item.quote.includes('per day')).reason, /unit rate/);
 assert.deepEqual(ground(proposals[0].quote, { items: [proposals[0], proposals[0]] }).items, []);
+for (const quote of [
+  'Agreed to waive the setup fee of $50.',
+  'Agreed to cancel the audit for $90.',
+  'Agreed refund $70.',
+  'Agreed $70 if the client confirms.',
+]) {
+  assert.deepEqual(ground(quote, { items: [{ name: 'Charge', quote }] }).items, [], quote);
+  assert.deepEqual(ground(quote, { items: [] }).items, [], quote);
+}
+assert.equal(ground('\n  ' + proposals[0].quote, { items: [proposals[0]] }).items[0].line, 2);
 const duplicated = ground(proposals[0].quote + '\n' + proposals[0].quote, { items: [proposals[0]] });
 assert.deepEqual(duplicated.items, []);
 assert.match(duplicated.unreviewed[0].reason, /Repeated charge/);
@@ -68,22 +80,28 @@ const draftCalls = [];
 let failCreate = false;
 let failVerify = true;
 let failAuth = false;
+let savedPayload;
+let corruptDraft = false;
 globalThis.fetch = async (url, options) => {
   if (url.endsWith('/token')) {
     return failAuth ? new Response(null, { status: 401 }) : Response.json({ access_token: 'stub' });
   }
   draftCalls.push(options.method ?? 'GET');
   if (options.method === 'POST') {
-    assert.equal(JSON.parse(options.body).detail.reference, options.headers['PayPal-Request-Id']);
+    savedPayload = JSON.parse(options.body);
+    assert.equal(savedPayload.detail.reference, options.headers['PayPal-Request-Id']);
     if (failCreate) throw new Error('Lost POST response');
     return Response.json({ id: 'INV2-TEST' }, { status: 201 });
   }
   assert.ok(url.endsWith('/INV2-TEST'));
-  return failVerify ? new Response(null, { status: 503 }) : Response.json({ status: 'DRAFT' });
+  return failVerify ? new Response(null, { status: 503 }) : Response.json({ ...savedPayload, status: 'DRAFT', items: corruptDraft ? [] : savedPayload.items });
 };
 const attempt = { requestId: 'known-draft' };
 await assert.rejects(createDraft(result.items, attempt), /Verification failed for INV2-TEST/);
 failVerify = false;
+corruptDraft = true;
+await assert.rejects(createDraft(result.items, attempt), /differs from the approved charges/);
+corruptDraft = false;
 assert.equal(await createDraft(result.items, attempt), 'INV2-TEST');
 failCreate = true;
 const uncertain = { requestId: 'uncertain-draft' };
@@ -93,5 +111,5 @@ failAuth = true;
 const unauthorized = { requestId: 'unauthorized-draft' };
 await assert.rejects(createDraft(result.items, unauthorized), /Client ID and Secret come from the same Sandbox app/);
 assert.equal(unauthorized.submitted, undefined);
-assert.deepEqual(draftCalls, ['POST', 'GET', 'GET', 'POST']);
+assert.deepEqual(draftCalls, ['POST', 'GET', 'GET', 'GET', 'POST']);
 console.log('Draft recovery check passed with stubbed PayPal responses.');

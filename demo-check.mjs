@@ -23,14 +23,14 @@ if (process.argv[2] !== '--create-sandbox-draft') {
   const review = await post('/extract', { notes: [...agreed, optional].join('\n') });
   assert.deepEqual(review.unreviewed.map(item => item.quote), [optional]);
   assert.equal(review.items.length, agreed.length);
-  const byQuote = new Map(review.items.map(item => [item.quote, [item.quantity, item.unitPrice]]));
-  assert.deepEqual(byQuote.get(agreed[0]), [1, '250.00']);
-  assert.deepEqual(byQuote.get(agreed[1]), [2, '75.00']);
+  const byQuote = new Map(review.items.map(item => [item.quote, [item.line, item.quantity, item.unitPrice]]));
+  assert.deepEqual(byQuote.get(agreed[0]), [1, 1, '250.00']);
+  assert.deepEqual(byQuote.get(agreed[1]), [2, 2, '75.00']);
   const manualCount = review.items.filter(item => item.manual).length;
   console.log(`Verified two reviewable charges totaling USD 400.00, with the optional audit excluded. Manual review rows: ${manualCount}.`);
 
   const draft = await post('/draft', { id: review.id, indices: review.items.map((_, index) => index) });
   assert.match(draft.id, /^INV2-[A-Z0-9-]+$/);
   assert.equal(draft.status, 'DRAFT');
-  console.log(`Verified PayPal sandbox invoice ${draft.id} is DRAFT.`);
+  console.log(`Verified PayPal sandbox invoice ${draft.id} is DRAFT and matches the approved charges and references.`);
 }
