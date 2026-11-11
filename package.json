@@ -1,0 +1,14 @@
+{
+  "name": "scopedraft",
+  "private": true,
+  "scripts": {
+    "build": "node build-netlify.mjs",
+    "test": "node check.mjs && node hosted-check.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "11.1.9"
+  },
+  "engines": {
+    "node": "22"
+  }
+}

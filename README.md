@@ -21,3 +21,9 @@ Run `node demo-check.mjs --create-sandbox-draft` in a second terminal to test ex
 ScopeDraft supports one local review at a time and one explicit positive USD price per line. Use the format `2 x $75.00` for a whole-unit quantity. The source button highlights the original note. Read the full notes for conflicts across lines, and check any manually suggested row before selecting it. If draft creation has an uncertain result, use the displayed reference to check Sandbox Invoicing before starting another review.
 
 Use fictional notes and sandbox accounts. Extraction sends notes to NVIDIA. PayPal receives selected names, amounts, quantities, source line references and the configured sandbox buyer. A manual item's name can contain its original line. The app creates sandbox drafts only.
+
+## Host the fixed sample on Netlify
+
+The hosted build uses the prefilled fictional notes. It stores NVIDIA's sample review and shares one PayPal Sandbox draft per selection. The local build above supports editing notes and using your own provider accounts.
+
+Use Node.js 22, run `npm ci` and `npm test`, and configure the values in `.env.example` as Netlify Functions environment variables for the production context. Keep provider credentials secret. `npm run build` generates the browser page in `dist/`. The Netlify configuration routes the two API endpoints to the sample function. Deploy the site from this repository with Netlify or deploy the built assets and functions with the Netlify CLI.
